@@ -1,0 +1,11 @@
+pip --version 
+
+pip freeze (# list all install library)
+
+pip install virtualevn  #install virtual environment
+
+python -m venv myenv     #create a new virtual environment named "myenv"
+                        #you can name it whatever you
+
+
+source ./venv/Scripts/activate
