@@ -9,3 +9,30 @@ python -m venv myenv     #create a new virtual environment named "myenv"
 
 
 source ./venv/Scripts/activate
+
+
+# Day two 
+python manage.py makemigrations
+python manage.py migrate
+
+python manage.py shell
+
+
+>>> from boards.models import Board
+>>> board = Board(name='Django', description = "This is a board about Django.") 
+>>> board.save()
+
+# Fetch data from board
+board.name
+board.id
+board.description
+
+
+# update the data in description 
+board.description="This is an updated board about Django."
+
+
+# Create another board name with Python 
+
+board = Board.objects.create(name='Python', description='General discussion about Python')
+board.save()

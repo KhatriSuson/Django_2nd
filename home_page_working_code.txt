@@ -1,0 +1,105 @@
+## Start with:
+1. activate venv
+2. cd blogs
+3. python manage.py shell
+
+## In  the Django Shell, run these commands:
+
+`
+from boards.models import Board
+
+Board.objects.all()
+
+`
+
+## Insert following code to models.py/Boards class:
+`
+def __str__(self):
+        return self.name
+`
+
+## QuerySet iteration:
+
+### Get All Boards
+`
+boards_list = Board.objects.all()
+for board in boards_list:
+    print(board.description)
+`
+
+### Get Boards by Id
+`
+django_board = Board.objects.get(id=1)
+django_board.name
+django_board.description
+`
+
+### throws error if id not found:
+`
+django_board = Board.objects.get(id=3)
+`
+
+
+## Add following code in boards/views.py
+
+`
+from .models import Board
+
+def home(request):
+    boards = Board.objects.all()
+    boards_names = []
+
+    for board in boards:
+        boards_names.append(board.name)
+
+    response_html = '<br>'.join(boards_names)
+
+    return HttpResponse(response_html)
+`
+
+## Test Base_Dir path:
+`
+python manage.py shell
+from django.conf import settings
+
+settings.BASE_DIR
+`
+
+## ADD the following html codes to home.html:
+`
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Boards</title>
+  </head>
+  <body>
+    <h1>Boards</h1>
+
+    <table border="1">
+      <thead>
+        <tr>
+          <th>Board</th>
+          <th>Posts</th>
+          <th>Topics</th>
+          <th>Last Post</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for board in boards %}
+          <tr>
+            <td>
+              {{ board.name }}<br>
+              <small style="color: #888">{{ board.description }}</small>
+            </td>
+            <td>0</td>
+            <td>0</td>
+            <td></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </body>
+</html>
+`

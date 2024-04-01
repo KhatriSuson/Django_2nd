@@ -1,0 +1,77 @@
+## Added code to boards/models.py
+
+`
+
+
+from django.db import models
+from django.contrib.auth.models import User
+
+
+class Board(models.Model):
+    name = models.CharField(max_length=30, unique=True)
+    description = models.CharField(max_length=100)
+
+
+class Topic(models.Model):
+    subject = models.CharField(max_length=255)
+    last_updated = models.DateTimeField(auto_now_add=True)
+    board = models.ForeignKey(Board, related_name='topics')
+    starter = models.ForeignKey(User, related_name='topics')
+
+
+class Post(models.Model):
+    message = models.TextField(max_length=4000)
+    topic = models.ForeignKey(Topic, related_name='posts')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(null=True)
+    created_by = models.ForeignKey(User, related_name='posts')
+    updated_by = models.ForeignKey(User, null=True, related_name='+')
+
+`
+
+## Run command:
+`
+python manage.py makemigrations
+python manage.py migrate boards
+python manage.py shell
+
+from boards.models import Board
+board = Board(name='Django', description='This is a board about Django.')
+board.save()
+
+board.description = "this is updated description"
+board.save()
+
+
+board = Board.objects.create(name='Python', description='General discussion about Python.')
+
+exit()
+`
+
+
+# form boards.models import Board
+Board.objects.all()
+
+
+boards_list = Board.objects.all()
+
+for board in boards_list:
+    print(board.id, board.name, board.description)
+
+
+django_boards = Board.objects.get(id=1)
+>>> django_boards.name
+
+
+boards.models.Board.DoesNotExist: Board matching query does not exist.
+>>> dj_board = Board.objects.get(name='Django')
+>>> dj_board.description
+'This is an updated board about Django'
+>>> dj_board.name
+'Django'
+>>> dj_board.id
+1
+>>>
+
+
+# python manage.py test --verbosity=2
