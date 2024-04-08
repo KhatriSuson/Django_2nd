@@ -4,20 +4,29 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{% block title %}Django Boards {% endblock title %}</title>
+        <title>
+            {% block title %}
+                Django Boards
+            {% endblock title %}
+        </title>
         <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
     </head>
     <body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container">
+                <a class="navbar-brand" href="{% url 'home' %}">Django Boards</a>
+            </div>
+        </nav>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Peralta&display=swap"
+              rel="stylesheet">
+        <link rel="stylesheet" href="{% static 'css/app.css' %}">
         <div class="container">
             <ol class="breadcrumb">
-                {% block breadcrumb %}
-
-                {% endblock %}
-                
+                {% block breadcrumb %}{% endblock %}
             </ol>
-
-            {% block content %}
-            {% endblock %}
+            {% block content %}{% endblock %}
         </div>
     </body>
 </html>

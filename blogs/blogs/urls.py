@@ -36,4 +36,6 @@ urlpatterns = [
     re_path(r'^blog/(?P<slug>[-\w]+)-(?P<pk>\d+)/$', views.blog_post, name="post"),
     re_path(r'^profile/(?P<username>[\w\-]+)/$', views.user_profile, name='user_profile'),
     re_path(r'^articleb/(?P<year>[0-9]{4})/$', views.year_archive, name = 'year'),
+
+     re_path(r'^boards/(?P<pk>\d+)/new/$', views.new_topic, name='new_topic'),
 ]
