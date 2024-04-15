@@ -17,6 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, re_path
 
+# form accounts app
+from accounts import views as account_views
+
 from boards import views
 
 urlpatterns = [
@@ -37,5 +40,9 @@ urlpatterns = [
     re_path(r'^profile/(?P<username>[\w\-]+)/$', views.user_profile, name='user_profile'),
     re_path(r'^articleb/(?P<year>[0-9]{4})/$', views.year_archive, name = 'year'),
 
-     re_path(r'^boards/(?P<pk>\d+)/new/$', views.new_topic, name='new_topic'),
+    re_path(r'^boards/(?P<pk>\d+)/new/$', views.new_topic, name='new_topic'),
+    
+
+    # Accounts app path
+    re_path(r'^signup/$', account_views.signup, name='signup'),
 ]
