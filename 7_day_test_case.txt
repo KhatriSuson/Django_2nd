@@ -1,0 +1,312 @@
+from django.test import TestCase
+
+# Create your tests here.
+from django.urls import reverse, resolve
+from .views import home, board_topics, new_topic
+from .models import Board, Topic, Post
+from django.contrib.auth.models import User
+class HomeTests(TestCase):
+    def setUp(self):
+        self.board = Board.objects.create(name='Django', description='Django board.')
+        url = reverse('home')
+        self.response = self.client.get(url)
+
+    def test_home_view_status_code(self):
+        self.assertEquals(self.response.status_code, 200)
+
+    def test_home_url_resolves_home_view(self):
+        view = resolve('/')
+        self.assertEquals(view.func, home)
+
+    def test_home_view_contains_link_to_topics_page(self):
+        board_topics_url = reverse('board_topics', kwargs={'pk': self.board.pk})
+        self.assertContains(self.response, 'href="{0}"'.format(board_topics_url))
+
+class BoardTopicsTests(TestCase):
+    def setUp(self):
+        Board.objects.create(name='Django', description='Django board.')
+
+    def test_board_topics_view_success_status_code(self):
+        url = reverse('board_topics', kwargs={'pk': 1})
+        response = self.client.get(url)
+        self.assertEquals(response.status_code, 200)
+
+    def test_board_topics_view_not_found_status_code(self):
+        url = reverse('board_topics', kwargs={'pk': 99})
+        response = self.client.get(url)
+        self.assertEquals(response.status_code, 404)
+
+    def test_board_topics_url_resolves_board_topics_view(self):
+        view = resolve('/boards/1/')
+        self.assertEquals(view.func, board_topics)
+    
+    def test_board_topics_view_contains_link_back_to_homepage(self):
+        board_topics_url = reverse('board_topics', kwargs={'pk': 1})
+        response = self.client.get(board_topics_url)
+        homepage_url = reverse('home')
+        self.assertContains(response, 'href="{0}"'.format(homepage_url))
+
+    def test_board_topics_view_contains_navigation_links(self):
+        board_topics_url = reverse('board_topics', kwargs={'pk': 1})
+        homepage_url = reverse('home')
+        new_topic_url = reverse('new_topic', kwargs={'pk': 1})
+
+        response = self.client.get(board_topics_url)
+
+        self.assertContains(response, 'href="{0}"'.format(homepage_url))
+        self.assertContains(response, 'href="{0}"'.format(new_topic_url))
+
+class NewTopicTests(TestCase):
+    def setUp(self):
+        Board.objects.create(name='Django', description='Django board.')
+        User.objects.create_user(username='john', email='john@doe.com', password='123')  # <- included this line here
+        
+    def test_new_topic_view_success_status_code(self):
+        url = reverse('new_topic', kwargs={'pk': 1})
+        response = self.client.get(url)
+        self.assertEquals(response.status_code, 200)
+
+    def test_new_topic_view_not_found_status_code(self):
+        url = reverse('new_topic', kwargs={'pk': 99})
+        response = self.client.get(url)
+        self.assertEquals(response.status_code, 404)
+
+    def test_new_topic_url_resolves_new_topic_view(self):
+        view = resolve('/boards/1/new/')
+        self.assertEquals(view.func, new_topic)
+
+    def test_new_topic_view_contains_link_back_to_board_topics_view(self):
+        new_topic_url = reverse('new_topic', kwargs={'pk': 1})
+        board_topics_url = reverse('board_topics', kwargs={'pk': 1})
+        response = self.client.get(new_topic_url)
+        self.assertContains(response, 'href="{0}"'.format(board_topics_url))
+
+    def test_csrf(self):
+        url = reverse('new_topic', kwargs={'pk': 1})
+        response = self.client.get(url)
+        self.assertContains(response, 'csrfmiddlewaretoken')
+
+    def test_new_topic_valid_post_data(self):
+        url = reverse('new_topic', kwargs={'pk': 1})
+        data = {
+            'subject': 'Test title',
+            'message': 'Lorem ipsum dolor sit amet'
+        }
+        response = self.client.post(url, data)
+        self.assertTrue(Topic.objects.exists())
+        self.assertTrue(Post.objects.exists())
+
+    def test_new_topic_invalid_post_data(self):
+        '''
+        Invalid post data should not redirect
+        The expected behavior is to show the form again with validation errors
+        '''
+        url = reverse('new_topic', kwargs={'pk': 1})
+        response = self.client.post(url, {})
+        self.assertEquals(response.status_code, 200)
+
+    def test_new_topic_invalid_post_data_empty_fields(self):
+        '''
+        Invalid post data should not redirect
+        The expected behavior is to show the form again with validation errors
+        '''
+        url = reverse('new_topic', kwargs={'pk': 1})
+        data = {
+            'subject': '',
+            'message': ''
+        }
+        response = self.client.post(url, data)
+        self.assertEquals(response.status_code, 200)
+        self.assertFalse(Topic.objects.exists())
+        self.assertFalse(Post.objects.exists())
+
+
+
+
+# create forms.py in boards and add code 
+from django import forms
+from .models import Topic
+
+class NewTopicForm(forms.ModelForm):
+    message = forms.CharField(widget=forms.Textarea(), max_length=4000)
+
+    class Meta:
+        model = Topic
+        fields = ['subject', 'message']
+
+
+
+
+# Replace function nwe_topic in boards/views.py
+
+def new_topic(request, pk):
+    board = get_object_or_404(Board, pk=pk)
+    user = User.objects.first()  # TODO: get the currently logged in user
+    if request.method == 'POST':
+        form = NewTopicForm(request.POST)
+        if form.is_valid():
+            topic = form.save(commit=False)
+            topic.board = board
+            topic.starter = user
+            topic.save()
+            post = Post.objects.create(
+                message=form.cleaned_data.get('message'),
+                topic=topic,
+                created_by=user
+            )
+            return redirect('board_topics', pk=board.pk)  # TODO: redirect to the created topic page
+    else:
+        form = NewTopicForm()
+    return render(request, 'new_topic.html', {'board': board, 'form': form})
+
+# Replace new_topic.html with code
+
+{% extends 'base.html' %}
+
+{% block title %}Start a New Topic{% endblock %}
+
+{% block breadcrumb %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Boards</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'board_topics' board.pk %}">{{ board.name }}</a></li>
+  <li class="breadcrumb-item active">New topic</li>
+{% endblock %}
+
+{% block content %}
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Post</button>
+  </form>
+{% endblock %}
+
+
+
+# Replace boards/forms.py
+from django import forms
+from .models import Topic
+
+class NewTopicForm(forms.ModelForm):
+    message = forms.CharField(
+        widget=forms.Textarea(
+            attrs={'rows': 5, 'placeholder': 'What is on your mind?'}
+        ),
+        max_length=4000,
+        help_text='The max length of the text is 4000.'
+    )
+
+    class Meta:
+        model = Topic
+        fields = ['subject', 'message']
+
+
+
+# Add 'widget_tweaks' app in settings.py installed app
+'widget_tweaks',
+
+
+## Replace new_topic.html
+{% extends 'base.html' %}
+
+{% load widget_tweaks %}
+
+{% block title %}Start a New Topic{% endblock %}
+
+{% block breadcrumb %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Boards</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'board_topics' board.pk %}">{{ board.name }}</a></li>
+  <li class="breadcrumb-item active">New topic</li>
+{% endblock %}
+
+{% block content %}
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    {% for field in form %}
+      <div class="form-group">
+        {{ field.label_tag }}
+
+        {% render_field field class="form-control" %}
+
+        {% if field.help_text %}
+          <small class="form-text text-muted">
+            {{ field.help_text }}
+          </small>
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    <button type="submit" class="btn btn-success">Post</button>
+  </form>
+{% endblock %}
+
+
+### Replace templates/new_topic form tag code with:
+<form method="post" novalidate>
+  {% csrf_token %}
+
+  {% for field in form %}
+    <div class="form-group">
+      {{ field.label_tag }}
+
+      {% if form.is_bound %}
+        {% if field.errors %}
+
+          {% render_field field class="form-control is-invalid" %}
+          {% for error in field.errors %}
+            <div class="invalid-feedback">
+              {{ error }}
+            </div>
+          {% endfor %}
+
+        {% else %}
+          {% render_field field class="form-control is-valid" %}
+        {% endif %}
+      {% else %}
+        {% render_field field class="form-control" %}
+      {% endif %}
+
+      {% if field.help_text %}
+        <small class="form-text text-muted">
+          {{ field.help_text }}
+        </small>
+      {% endif %}
+    </div>
+  {% endfor %}
+
+  <button type="submit" class="btn btn-success">Post</button>
+</form>
+
+
+## create a includes folder in templates
+
+# create file form.html inside templates/includes/form.html write code:
+{% load widget_tweaks %}
+
+{% for field in form %}
+  <div class="form-group">
+    {{ field.label_tag }}
+
+    {% if form.is_bound %}
+      {% if field.errors %}
+        {% render_field field class="form-control is-invalid" %}
+        {% for error in field.errors %}
+          <div class="invalid-feedback">
+            {{ error }}
+          </div>
+        {% endfor %}
+      {% else %}
+        {% render_field field class="form-control is-valid" %}
+      {% endif %}
+    {% else %}
+      {% render_field field class="form-control" %}
+    {% endif %}
+
+    {% if field.help_text %}
+      <small class="form-text text-muted">
+        {{ field.help_text }}
+      </small>
+    {% endif %}
+  </div>
+{% endfor %}
+
+=> It is used for reuseable form template.

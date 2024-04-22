@@ -1,0 +1,297 @@
+## add code on templates/password_reset.html code:
+{% extends 'base_accounts.html' %}
+
+{% block title %}Reset your password{% endblock %}
+
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-lg-4 col-md-6 col-sm-8">
+      <div class="card">
+        <div class="card-body">
+          <h3 class="card-title">Reset your password</h3>
+          <p>Enter your email address and we will send you a link to reset your password.</p>
+          <form method="post" novalidate>
+            {% csrf_token %}
+            {% include 'includes/form.html' %}
+            <button type="submit" class="btn btn-primary btn-block">Send password reset email</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+
+## add templates/password_reset_subject.txt
+[Django Boards] Please reset your password
+
+## add tempaltes/passwrod_reset_email.html
+Hi there,
+
+Someone asked for a password reset for the email address {{ email }}.
+Follow the link below:
+{{ protocol }}://{{ domain }}{% url 'password_reset_confirm' uidb64=uid token=token %}
+
+In case you forgot your Django Boards username: {{ user.username }}
+
+If clicking the link above doesn't work, please copy and paste the URL
+in a new browser window instead.
+
+If you've received this mail in error, it's likely that another user entered
+your email address by mistake while trying to reset a password. If you didn't
+initiate the request, you don't need to take any further action and can safely
+disregard this email.
+
+Thanks,
+
+The Django Boards Team
+Password Reset Email
+
+## add templates/password_reset_done.html
+{% extends 'base_accounts.html' %}
+
+{% block title %}Reset your password{% endblock %}
+
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-lg-4 col-md-6 col-sm-8">
+      <div class="card">
+        <div class="card-body">
+          <h3 class="card-title">Reset your password</h3>
+          <p>Check your email for a link to reset your password. If it doesn't appear within a few minutes, check your spam folder.</p>
+          <a href="{% url 'login' %}" class="btn btn-secondary btn-block">Return to log in</a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+
+
+## add code tempaltes/password_reset_confirm.html
+{% extends 'base_accounts.html' %}
+
+{% block title %}
+  {% if validlink %}
+    Change password for {{ form.user.username }}
+  {% else %}
+    Reset your password
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8 col-sm-10">
+      <div class="card">
+        <div class="card-body">
+          {% if validlink %}
+            <h3 class="card-title">Change password for @{{ form.user.username }}</h3>
+            <form method="post" novalidate>
+              {% csrf_token %}
+              {% include 'includes/form.html' %}
+              <button type="submit" class="btn btn-success btn-block">Change password</button>
+            </form>
+          {% else %}
+            <h3 class="card-title">Reset your password</h3>
+            <div class="alert alert-danger" role="alert">
+              It looks like you clicked on an invalid password reset link. Please try again.
+            </div>
+            <a href="{% url 'password_reset' %}" class="btn btn-secondary btn-block">Request a new password reset link</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+
+## Replace tempaltes/base.html
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Peralta&family=Yarndings+12&display=swap" rel="stylesheet">
+    <title>{% block title %}Django Boards{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    {% block stylesheet %}{% endblock %} 
+</head>
+
+<body>
+    {% block body %}
+    <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
+      <div class="container">
+        <a class="navbar-brand" href="{% url 'home' %}">Django Boards</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainMenu" aria-controls="mainMenu" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainMenu">
+          {% if user.is_authenticated %}
+            <ul class="navbar-nav ml-auto">
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="userMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  {{ user.username }}
+                </a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userMenu">
+                  <a class="dropdown-item" href="#">My account</a>
+                  <a class="dropdown-item" href="#">Change password</a>
+                  <div class="dropdown-divider"></div>
+                  <!-- <a class="dropdown-item" href="{% url 'logout' %}">Log out</a> -->
+                  <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit">logout</button>
+                </form>
+                </div>
+              </li>
+            </ul>
+          {% else %}
+            <form class="form-inline ml-auto">
+              <a href="{% url 'login' %}" class="btn btn-outline-secondary">Log in</a>
+              <a href="{% url 'signup' %}" class="btn btn-primary ml-2">Sign up</a>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+    <div class="container">
+        <ol class="breadcrumb my-4">
+            {% block breadcrumb %}
+            {% endblock %}
+        </ol>
+        {% block content %}
+        {% endblock %}
+    </div>
+    {% endblock body %}
+    <script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+    <script src="{% static 'js/popper.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+</body>
+
+</html>
+
+
+
+### add tempaltes/password_reset_complete.html
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Peralta&family=Yarndings+12&display=swap" rel="stylesheet">
+    <title>{% block title %}Django Boards{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    {% block stylesheet %}{% endblock %} 
+</head>
+
+<body>
+    {% block body %}
+    <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
+      <div class="container">
+        <a class="navbar-brand" href="{% url 'home' %}">Django Boards</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainMenu" aria-controls="mainMenu" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainMenu">
+          {% if user.is_authenticated %}
+            <ul class="navbar-nav ml-auto">
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="userMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  {{ user.username }}
+                </a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userMenu">
+                  <a class="dropdown-item" href="#">My account</a>
+                  <a class="dropdown-item" href="#">Change password</a>
+                  <div class="dropdown-divider"></div>
+                  <!-- <a class="dropdown-item" href="{% url 'logout' %}">Log out</a> -->
+                  <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit">logout</button>
+                </form>
+                </div>
+              </li>
+            </ul>
+          {% else %}
+            <form class="form-inline ml-auto">
+              <a href="{% url 'login' %}" class="btn btn-outline-secondary">Log in</a>
+              <a href="{% url 'signup' %}" class="btn btn-primary ml-2">Sign up</a>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+    <div class="container">
+        <ol class="breadcrumb my-4">
+            {% block breadcrumb %}
+            {% endblock %}
+        </ol>
+        {% block content %}
+        {% endblock %}
+    </div>
+    {% endblock body %}
+    <script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+    <script src="{% static 'js/popper.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+</body>
+
+</html>
+
+
+
+### add blogs/urls.py 
+re_path(r'^settings/password/$', auth_views.PasswordChangeView.as_view(template_name='password_change.html'),
+        name='password_change'),
+    re_path(r'^settings/password/done/$', auth_views.PasswordChangeDoneView.as_view(template_name='password_change_done.html'),
+        name='password_change_done'),
+
+
+### add blogs/setting.py
+LOGIN_URL = 'login'
+
+
+### create tempaltes/password_chage.html
+{% extends 'base.html' %}
+
+{% block title %}Change password{% endblock %}
+
+{% block breadcrumb %}
+  <li class="breadcrumb-item active">Change password</li>
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-lg-6 col-md-8 col-sm-10">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% include 'includes/form.html' %}
+        <button type="submit" class="btn btn-success">Change password</button>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+
+
+## create tempaltes/password_change_done.html
+{% extends 'base.html' %}
+
+{% block title %}Change password successful{% endblock %}
+
+{% block breadcrumb %}
+  <li class="breadcrumb-item"><a href="{% url 'password_change' %}">Change password</a></li>
+  <li class="breadcrumb-item active">Success</li>
+{% endblock %}
+
+{% block content %}
+  <div class="alert alert-success" role="alert">
+    <strong>Success!</strong> Your password has been changed!
+  </div>
+  <a href="{% url 'home' %}" class="btn btn-secondary">Return to home page</a>
+{% endblock %}

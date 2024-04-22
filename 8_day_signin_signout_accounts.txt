@@ -1,0 +1,45 @@
+## Run following command:
+`
+django-admin startapp accounts
+`
+
+## Add following code to settings.py
+
+`
+'accounts',
+`
+
+## Add following code to blogs/urls.py
+
+`
+from accounts import views as accounts_views
+
+re_path(r'^signup/$', accounts_views.signup, name='signup'),
+
+`
+
+## Add following code to accounts/views.py
+
+`
+def signup(request):
+    return render(request, 'signup.html')
+`
+
+## Create a file signup.html and add following code:
+
+`
+
+
+{% extends 'base.html' %}
+
+{% block body %}
+  <div class="container">
+    <h2>Sign up</h2>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% include 'includes/form.html' %}
+      <button type="submit" class="btn btn-primary">Create an account</button>
+    </form>
+  </div>
+{% endblock %}
+`

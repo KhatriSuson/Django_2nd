@@ -36,3 +36,11 @@ board.description="This is an updated board about Django."
 
 board = Board.objects.create(name='Python', description='General discussion about Python')
 board.save()
+
+
+
+# Install pip to modify the django forms
+
+pip install django-widget-tweaks
+
+
