@@ -5,6 +5,14 @@ https://code.jquery.com/jquery-3.2.1.min.js
 https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js
 https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js
 
+https://www.markdownguide.org/
+# settings.py install apps
+django.contrib.humanize
+
+https://gravatar.com/profile
+
+## django checkeditor (visit  site)
+https://dev.to/ieeecsvitc/integrating-rich-text-editor-with-django-k19
 
 ## Create post in shell
 
