@@ -115,6 +115,9 @@ urlpatterns = [
         accounts_views.UserUpdateView.as_view(),
         name="my_account",
     ),
+
+
+    path('api/', include("sample_api.urls")),
 ]
 
 # """

@@ -1,0 +1,118 @@
+## run command:
+
+`
+
+pip install djangorestframework
+
+
+python manage.py startapp sample_api
+
+`
+
+## update settings.py
+
+`
+'rest_framework',  
+    'sample_api',  
+
+`
+
+## update sample_api/models.py
+
+`
+
+class Students(models.Model):  
+    first_name = models.CharField(max_length=200)  
+    last_name = models.CharField(max_length=200)  
+    address = models.CharField(max_length=200)  
+    roll_number = models.IntegerField()  
+    mobile = models.CharField(max_length=10)  
+  
+    def __str__(self):  
+        return self.first_name + " " + self.last_name  
+`
+
+## update sample_api/admin.py
+
+`
+from .models import Students  
+  
+# Register your models here.  
+admin.site.register(Students)  
+`
+
+## run command:
+
+`
+python3 manage.py makemigrations  
+python3 manage.py migrate 
+`
+
+## create sample_api/serializers.py
+
+`
+
+from rest_framework import serializers  
+from .models import Students  
+  
+class StudentSerializer(serializers.ModelSerializer):  
+    first_name = serializers.CharField(max_length=200, required=True)  
+    last_name = serializers.CharField(max_length=200, required=True)  
+    address = serializers.CharField(max_length=200, required=True)  
+    roll_number = serializers.IntegerField()  
+    mobile = serializers.CharField(max_length=10, required=True)  
+  
+    class Meta:  
+        model = Students  
+        fields = ('__all__')  
+
+`
+
+## update sample_api/views.py
+
+`
+
+from django.shortcuts import render  
+from rest_framework.views import APIView  
+from rest_framework.response import Response  
+from rest_framework import status  
+from .models import Students  
+from .serializers import StudentSerializer  
+# Create your views here.  
+  
+class StudentView(APIView):  
+  
+    def get(self, request, *args, **kwargs):  
+        result = Students.objects.all()  
+        serializers = StudentSerializer(result, many=True)  
+        return Response({'status': 'success', "students":serializers.data}, status=200)  
+  
+     def post(self, request):  
+        serializer = StudentSerializer(data=request.data)  
+        if serializer.is_valid():  
+            serializer.save()  
+            return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)  
+        else:  
+            return Response({"status": "error", "data": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+`
+
+## update urls.py
+
+`
+path('api/', include('sample_api.urls')),
+`
+
+## create file sample_api/urls.py
+
+`
+
+from .views import StudentView  
+from django.urls import path  
+  
+urlpatterns = [  
+    path('basic/', StudentView.as_view())  
+]  
+
+`
+
+306
