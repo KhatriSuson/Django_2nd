@@ -1,4 +1,7 @@
-{% extends 'base_accounts.html' %}
+
+
+
+ {% extends 'base_accounts.html' %}
 
 {% block title %}Sign up to Django Boards{% endblock %}
 
@@ -8,12 +11,16 @@
       <div class="card">
         <div class="card-body">
           <h3 class="card-title">Sign up</h3>
-          <form method="post" novalidate>
+
+          <!-- CSRF Token and form -->
+          <form method="post" action="{% url 'signup' %}" novalidate>
             {% csrf_token %}
             {% include 'includes/form.html' %}
             <button type="submit" class="btn btn-primary btn-block">Create an account</button>
           </form>
         </div>
+
+        <!-- Footer for login link -->
         <div class="card-footer text-muted text-center">
           Already have an account? <a href="{% url 'login' %}">Log in</a>
         </div>
@@ -21,5 +28,3 @@
     </div>
   </div>
 {% endblock %}
-
-
